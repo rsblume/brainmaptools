@@ -227,3 +227,14 @@ def run_weighted_metrics(G, top_n=5):
         weighted_metrics['top'+x]=tops
     
     return weighted_metrics
+    
+    
+def build_influence_matrix(n_coactives_array):
+    n_coactive_mat=n_coactives_array.copy()
+    diagonal=n_coactive_mat.diagonal()
+    row_infl_col=n_coactive_mat/diagonal[:, np.newaxis] #dividing by row
+    col_infl_row=n_coactive_mat/diagonal #dividing by column
+    influence_mat=a-b # positive: rows influence column (B infl. A) , negative: col influence row (A inf. B)
+    influence_mat=np.triu(influence_mat)
+    return influence_mat
+    
