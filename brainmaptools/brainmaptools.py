@@ -242,4 +242,4 @@ def build_influence_digraph(n_coactives_array):
     influence_mat=build_influence_matrix(n_coactives_array)
     influence_di_mat=influence_mat*(influence_mat>0)
     influence_diG=nx.DiGraph(influence_di_mat)
-    return build_influence_digraph
+    return influence_diG
