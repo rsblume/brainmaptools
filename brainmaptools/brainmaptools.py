@@ -235,6 +235,11 @@ def build_influence_matrix(n_coactives_array):
     a=n_coactive_mat/diagonal[:, np.newaxis] #dividing by row
     b=n_coactive_mat/diagonal #dividing by column
     influence_mat=a-b # positive: rows influence column (B infl. A) , negative: col influence row (A inf. B)
-    influence_mat=np.triu(influence_mat)
+    #influence_mat=np.triu(influence_mat)
     return influence_mat
     
+def build_influence_digraph(n_coactives_array):
+    influence_mat=build_influence_matrix(n_coactives_array)
+    influence_di_mat=influence_mat*(influence_mat>0)
+    influence_diG=nx.DiGraph(influence_di_mat)
+    return build_influence_digraph
