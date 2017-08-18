@@ -4,6 +4,7 @@ import networkx as nx
 import pandas as pd
 import operator
 from sklearn.preprocessing import normalize
+import matplotlib.pyplot as plt
 #from brainx import util, detect_modules, modularity
 
 
@@ -153,6 +154,11 @@ def _remove_edgeless_nodes(G):
 
     G.remove_nodes_from(to_remove)
     return G
+    
+    
+def plot_weight_histogram(G):
+    histo=[G[x][y]['weight'] for x,y in G.edges()]
+    return plt.hist(histo)
 
 def build_binarized_graph(G):
     """Takes graph converts it to a np array, binarizes it, builds networkx graph with binary edges"""
@@ -168,6 +174,7 @@ def build_binarized_graph(G):
     return binary_G
     
 
+# Domain filtering
 def domain_filter_keycodes(key_codes, studies_filtered_by_domain, domain):
     """ filters a keycodes list by behavioral domain
         
@@ -194,6 +201,7 @@ def domain_filter_keycodes(key_codes, studies_filtered_by_domain, domain):
     return domain_filtered_codes
     
 
+#Analyses
 def run_basic_metrics(G, top_n=5):
     """runs a bunch of basic metrics and returns a dict"""
     basic_metrics=dict()
@@ -218,7 +226,7 @@ def run_weighted_metrics(G, top_n=5):
     weighted_metrics['cpl']=[nx.average_shortest_path_length(g, weight='weight') for g in nx.connected_component_subgraphs(G) if g.number_of_nodes()>1]
     weighted_metrics['ccoeff']=nx.clustering(G, weight='weight')
     weighted_metrics['degree_cent']=nx.degree_centrality(G)
-    weighted_metrics['between_cent']=nx.betweenness_centrality(G)
+    weighted_metrics['between_cent']=nx.betweenness_centrality(G, weight='weight')
     for x in ['degrees','degree_cent','between_cent','ccoeff']:
         sorted_x = sorted(weighted_metrics[x].items(), key=operator.itemgetter(1))
         tops=[]
@@ -234,7 +242,7 @@ def build_influence_matrix(n_coactives_array):
     diagonal=n_coactive_mat.diagonal()
     a=n_coactive_mat/diagonal[:, np.newaxis] #dividing by row
     b=n_coactive_mat/diagonal #dividing by column
-    influence_mat=a-b # positive: rows influence column (B infl. A) , negative: col influence row (A inf. B)
+    influence_mat=a-b # positive: rows influence column (A infl. B) , negative: col influence row (B inf. A)
     #influence_mat=np.triu(influence_mat)
     return influence_mat
     
@@ -243,3 +251,12 @@ def build_influence_digraph(n_coactives_array):
     influence_di_mat=influence_mat*(influence_mat>0)
     influence_diG=nx.DiGraph(influence_di_mat)
     return influence_diG
+    
+
+def make_brainx_style_partition(community_part_dict):
+    bx_part=[]
+    for x in list(set(community_part_dict.values())):
+        sub_part=[y for y in community_part_dict.keys() if community_part_dict[y]==x ]
+        #I could make sub_part a set
+        bx_part.append(sub_part)
+    return bx_part
