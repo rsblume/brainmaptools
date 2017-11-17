@@ -242,7 +242,7 @@ def build_influence_matrix(n_coactives_array):
     diagonal=n_coactive_mat.diagonal()
     a=n_coactive_mat/diagonal[:, np.newaxis] #dividing by row
     b=n_coactive_mat/diagonal #dividing by column
-    influence_mat=a-b # positive: rows influence column (A infl. B) , negative: col influence row (B inf. A)
+    influence_mat=a-b # positive: rows influence column (A infl. B) , negative: col influence row (B inf. A) --> only in the upper triangle 
     #influence_mat=np.triu(influence_mat)
     return influence_mat
     
