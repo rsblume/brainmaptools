@@ -94,6 +94,43 @@ def build_region_labels_dict(regionlist):
  
 # Working with networkx graphs
     
+def significant_connection_threshold(in_array,total_contrasts,threshold):
+    """Function thresholds the array to keep edges that are statistically significant
+    
+    Parameters:
+    -----------
+    in_array: coactivation matrix
+    array_lenght: dimension of the array
+    total_contrasts: total number of contrasts reported by all papers taken from database
+    threshold: threshold for significance
+    
+    Return:
+    -------
+    Returns thresh_array with significant connections kept and nonsignificant connections made to 0"""
+    
+    thresh_array=in_array.copy()
+    for x in range(np.shape(thresh_array)[0]):
+        for y in range(np.shape(thresh_array)[0]):
+            if x != y: 
+                # p=m/N m=independent activations of region X; N=total number of contrasts
+                p=thresh_array[x][x]/total_contrasts 
+                # null hypothesis is Binomial distribution of (k;n,p)* Binomial distribution of (m-k;N-n,p)
+                # k=Coactivation of region X & Y, n=independent activation of region Y
+                null=(scipy.stats.binom.pmf(thresh_array[x][y], thresh_array[y][y], p))*(scipy.stats.binom.pmf((thresh_array[x][x]-thresh_array[x][y]), (total_contrasts-thresh_array[y][y]), p))
+                # dependence between activations between both regions defined by p_one and p_zero
+                p_one=(thresh_array[x][y])/(thresh_array[y][y]) 
+                p_zero=(thresh_array[x][x]-thresh_array[x][y])/(total_contrasts-thresh_array[y][y])
+                # likelihood regions are functionally connected
+                alternate=(scipy.stats.binom.pmf(thresh_array[x][y], thresh_array[y][y], p_one))*(scipy.stats.binom.pmf((thresh_array[x][x]-thresh_array[x][y]), (total_contrasts-thresh_array[y][y]), p_zero))
+                # calculation of p value
+                p_val=(-2*(math.log10(null/alternate)))
+                # setting connection between region X and Y to zero if insignificant
+                if p_val > threshold:
+                    thresh_array[x][y]=0
+    return thresh_array
+
+
+
 def applycost_to_g(G,cost):
     """Threshold graph to achieve cost.
 
