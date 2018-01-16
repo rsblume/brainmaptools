@@ -3,6 +3,8 @@ import numpy as np
 import networkx as nx
 import pandas as pd
 import operator
+import scipy
+import math
 from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
 #from brainx import util, detect_modules, modularity
@@ -80,6 +82,7 @@ def build_n_coactives_array(key_codes):
     
 def normalize_n_coactives_array(n_coactives_array):
     #Use sklearn's normalize function w L2 remove diagonal first
+    #This is not a preferred method
     norm_coactives_array=n_coactives_array.copy()
     np.fill_diagonal(norm_coactives_array, 0)
     
@@ -90,10 +93,13 @@ def build_region_labels_dict(regionlist):
     return relabel_dict
  
  
- 
- 
-# Working with networkx graphs
-    
+def number_of_contrasts(key_codes):
+    contrast_list=[]
+    for x in key_codes:
+        contrast_list.extend(x)
+    ncontrasts=len(set(contrast_list))
+    return ncontrasts
+     
 def significant_connection_threshold(in_array,total_contrasts,threshold):
     """Function thresholds the array to keep edges that are statistically significant
     
@@ -130,7 +136,7 @@ def significant_connection_threshold(in_array,total_contrasts,threshold):
     return thresh_array
 
 
-
+# Working with networkx graphs
 def applycost_to_g(G,cost):
     """Threshold graph to achieve cost.
 
@@ -182,7 +188,7 @@ def remove_weight_edge_attribute(G):
     return G_binary
 
 
-def _remove_edgeless_nodes(G):
+def remove_edgeless_nodes(G):
     to_remove=[]
     degree = G.degree()
     for x in degree:
