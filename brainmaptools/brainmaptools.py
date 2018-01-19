@@ -88,8 +88,8 @@ def normalize_n_coactives_array(n_coactives_array):
     
     return norm_coactives_array
 
-def build_region_labels_dict(regionlist):
-    relabel_dict ={idx:x[:-5] for idx, x in enumerate(regionlist)}
+def build_region_labels_dict(regionlist, trim=5):
+    relabel_dict ={idx:x[:-trim] for idx, x in enumerate(regionlist)}
     return relabel_dict
  
  
