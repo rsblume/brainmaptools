@@ -92,7 +92,31 @@ def build_region_labels_dict(regionlist, trim=5):
     relabel_dict ={idx:x[:-trim] for idx, x in enumerate(regionlist)}
     return relabel_dict
  
- 
+#Different methods for making control graphs from BrainMap 
+def select_n_random_keycodes(keycodes, nstudies):
+    unique_keycodes=[]
+    for x in keycodes:
+        unique_keycodes.extend(x)
+    
+    unique_keycodes=set(unique_keycodes)
+    rands=np.random.rand(len(unique_keycodes))
+    random_keys_tuple=zip(rands, unique_keycodes)
+    selected_tuple=sorted(random_keys_tuple, reverse=1)[0:nstudies]
+    selected_keys=zip(*selected_tuple)[1]
+    selected_keycodes=[set(selected_keys) & set(x) for x in keycodes]
+    return selected_keycodes
+
+def build_average_graph_from_random_keycodes(keycodes, nstudies, niters):
+    jaccards=np.ndarray([len(keycodes),len(keycodes), niters])
+    for x in range(niters):
+        select_n_keys=select_n_random_keycodes(keycodes, nstudies)
+        jaccard=build_jaccard(build_n_coactives_array(select_n_keys))
+        jaccards[:,:,x]=jaccard
+    G=nx.from_numpy_matrix(np.mean(jaccards, 2))
+    return G
+
+
+
 def number_of_contrasts(key_codes):
     contrast_list=[]
     for x in key_codes:
@@ -199,9 +223,6 @@ def remove_edgeless_nodes(G):
     return G
     
     
-def plot_weight_histogram(G):
-    histo=[G[x][y]['weight'] for x,y in G.edges()]
-    return plt.hist(histo)
 
 def build_binarized_graph(G):
     """Takes graph converts it to a np array, binarizes it, builds networkx graph with binary edges"""
@@ -303,3 +324,25 @@ def make_brainx_style_partition(community_part_dict):
         #I could make sub_part a set
         bx_part.append(sub_part)
     return bx_part
+    
+#Plotting
+def plot_pretty_adj_matrix(G, nodelist, tick_space=5):
+    mat=nx.to_numpy_matrix(G, nodelist)
+    tick_range=range(0,G.number_of_nodes(), tick_space)
+    selected_labels=[nodelist[y] for x,y in enumerate(tick_range)]
+    
+    fig = plt.figure()
+    a = fig.add_subplot(1, 1, 1)
+    a.imshow(mat, interpolation='nearest')
+    a.set_xticks(tick_range)
+    a.set_xticklabels(selected_labels, rotation='vertical')
+    a.set_yticks(tick_range)
+    a.set_yticklabels(selected_labels)
+    fig.colorbar(a.imshow(mat, interpolation='nearest'))
+    return a
+    
+def plot_weight_histogram(G):
+    histo=[G[x][y]['weight'] for x,y in G.edges()]
+    return plt.hist(histo)
+
+    
